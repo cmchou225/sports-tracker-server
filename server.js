@@ -2,6 +2,8 @@ require('dotenv').config();
 
 const express = require('express');
 const path = require('path');
+const bodyParser = require('body-parser');
+const cookieSession = require('cookie-session');
 
 const ENV = process.env.NODE_ENV || 'development';
 
