@@ -6,13 +6,25 @@ const cookieSession = require('cookie-session');
 const authRoute  = express.Router();
 const app = express();
 
-app.use(cookieSession({
-  name: 'session',
-  keys: ['Lighthouse'],
-  maxAge: 24 * 60 * 60 * 1000
-}));
-
 module.exports = function() {
+  app.use(cookieSession({
+    name: 'session',
+    keys: ['Lighthouse'],
+    maxAge: 24 * 60 * 60 * 1000
+  }));
+  app.use(bodyParser.urlencoded({ extended: true }));
+
+  app.use((req, res, next) => {
+    let user = knex('users').select('*').where({email: req.session.userEmail}).then((result) => {
+      if(result) {
+        res.locals.user = result;
+        res.locals.email = result.email
+      } else {
+        res.locals.user = null;
+      }
+      next();
+      })})
+    
     // Root page
   app.get('/', (req, res) => {
     if(res.locals.user){
@@ -28,7 +40,7 @@ module.exports = function() {
       res.redirect('/');
       return;
     } else {
-      let templateVars = { user: res.locals.users};
+      let templateVars = { user: res.locals.user};
       res.render('urls_reg', templateVars);
       return;
     }
@@ -73,7 +85,7 @@ module.exports = function() {
   app.post('/login', (req, res, next) => {
     let inputPw = req.body.password,
         inputEmail = req.body.email,
-        userInDB = users.find((obj) => inputEmail === obj.email);
+        userInDB = knex('users').select('*').where({email: req.body.email})
     if(!userInDB){
       res.status(403).send(`Account with email entered not found. <a href="/login">Try again</a>`);
     } else {
