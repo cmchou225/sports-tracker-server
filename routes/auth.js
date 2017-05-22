@@ -9,13 +9,19 @@ const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const dbUsers = require('../db/users')(knex);
-const dbFavourites = require('../db/favourites')(knex);
-const dbCards = require('../db/cards')(knex);
 
 const router = express.Router();
 
 module.exports = (function() {
+  
+  router.use(cookieSession({
+    name: 'session',
+    keys: ['Lighthouse'],
+    maxAge: 24 * 60 * 60 * 1000
+  }));
 
+  router.use(bodyParser.urlencoded({ extended: true }));
+  
   router.use((req, res, next) => {
     console.log('ROUTER MIDDLEWARE');
     const sessionUsername = req.session.username
@@ -31,34 +37,13 @@ module.exports = (function() {
     console.log(sessionUsername);
     next();
   });
-  // Root page
-  // router.get('/', (req, res) => {
-  //   if(res.locals.user){
-  //     res.redirect('/');
-  //   } else {
-  //     res.redirect('/login');
-  //   }
-  // });
+
   router.get('/', (req, res) => {
-    console.log('wtff');
     res.sendFile('/build/index.html');
-  });
-  
-  router.get('register', (req, res) => {
-    if(res.locals.user){
-      res.redirect('/');
-      return;
-    } else {
-      let templateVars = { user: res.locals.user};
-      res.render('urls_reg', templateVars);
-      return;
-    }
   });
 
   router.post('/register', (req, res) => {
-    console.log(`request received`)
     const newUsername = req.body.username;
-    console.log(newUsername);
     dbUsers.getUserByUserName(newUsername).then(result =>{
       if(!req.body.email || !req.body.password || !req.body.username){
         res.status(400).send('Please input both email and password. <a href="/register">Try again</a>');
@@ -74,7 +59,6 @@ module.exports = (function() {
           const email = req.body.email;
           dbUsers.insertUser(username, email, hash)
           .then(()=> {
-            console.log(dbUsers.getUserByUserName(username));
             req.session.username = req.body.username;
             res.redirect('/');
           });
