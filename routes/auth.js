@@ -13,7 +13,7 @@ const dbUsers = require('../db/users')(knex);
 const router = express.Router();
 
 module.exports = (function() {
-  
+
   router.use(cookieSession({
     name: 'session',
     keys: ['Lighthouse'],
@@ -23,18 +23,14 @@ module.exports = (function() {
   router.use(bodyParser.urlencoded({ extended: true }));
   
   router.use((req, res, next) => {
-    console.log('ROUTER MIDDLEWARE');
-    const sessionUsername = req.session.username
+    const sessionUsername = req.session.username;
     if(!sessionUsername)
-      res.locals.user = null
+      res.locals.username = null
     else { 
       let user = dbUsers.getUserByUserName(sessionUsername).then((result) => {
-        console.log('Got here');
-        res.locals.user = result;
         res.locals.username = result.Username;
       });
     }
-    console.log(sessionUsername);
     next();
   });
 
@@ -46,7 +42,7 @@ module.exports = (function() {
     const newUsername = req.body.username;
     dbUsers.getUserByUserName(newUsername).then(result =>{
       if(!req.body.email || !req.body.password || !req.body.username){
-        res.status(400).send('Please input both email and password. <a href="/register">Try again</a>');
+        res.status(400).send('Please input all fields. <a href="/register">Try again</a>');
         return;
       }
       else if(result[0]){
@@ -68,8 +64,7 @@ module.exports = (function() {
   });
   // LOGIN routes
   router.get('/login', (req, res) => {
-    console.log(`request received`)
-    if(res.locals.user){
+    if(res.locals.username){
       res.redirect('/');
       return;
     }
@@ -77,11 +72,9 @@ module.exports = (function() {
   });
 
   router.post('/login', (req, res, next) => {
-    console.log('GOT TO LOGIN')
-    let inputPw = req.body.password,
-        inputUsername = req.body.username
+    let inputPw = req.body.password;
+    let inputUsername = req.body.username;
     dbUsers.getUserByUserName(inputUsername).then((result) => {
-      console.log(result)
       if(!result[0]){
         res.status(403)
         return Promise.reject({
@@ -90,7 +83,6 @@ module.exports = (function() {
         });
       } else {
         let registeredPw = result[0].password
-        console.log(registeredPw);
         bcrypt.compare(inputPw, registeredPw, function(err, result){
           if(!result){
             res.status(401).send('incorrect username or password');
@@ -102,7 +94,6 @@ module.exports = (function() {
         });
       }
     }).catch(err => {
-      console.log(err);
       res.redirect('/')
     });
   });

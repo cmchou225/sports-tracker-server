@@ -10,10 +10,5 @@ module.exports = function(knex) {
       .from('users')
       .where('username', '=', username);
     },
-    getUserByEmail: (email) => {
-      return knex.select('*')
-      .from('users')
-      .where('email', '=', email)
-    }
   };
 };
