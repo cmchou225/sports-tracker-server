@@ -19,6 +19,9 @@ const dbCards = require('./db/cards')(knex);
 
 const router = require('./routes/auth');
 
+const {sendEmail} = require('./emailer/emailer');
+
+
 app.use(express.static('build'));
 
 app.use('/', router);
