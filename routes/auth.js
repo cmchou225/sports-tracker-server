@@ -34,13 +34,9 @@ module.exports = (function() {
     next();
   });
 
-  router.get('/', (req, res) => {
-    res.sendFile('/build/index.html');
-  });
-
   router.post('/register', (req, res) => {
     const newUsername = req.body.username;
-    dbUsers.getUserByUserName(newUsername).then(result =>{
+    dbUsers.getUserByEmail(req.body.email).then(result =>{
       if(!req.body.email || !req.body.password || !req.body.username){
         res.status(400).send('Please input all fields. <a href="/register">Try again</a>');
         return;

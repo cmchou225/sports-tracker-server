@@ -23,6 +23,10 @@ app.use(express.static('build'));
 
 app.use('/', router);
 
+app.get('/', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '/index.html'));
+});
+
 server.listen(PORT, () => {
    console.log('Sports tracker listening on port ' + PORT);
 });
