@@ -2,9 +2,10 @@ require('dotenv').config();
 
 const express = require('express');
 const path = require('path');
+const uuidV4 = require('uuid/v4');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
-const uuidV4 = require('uuid/v4');
+const bcrypt = require('bcrypt');
 
 const PORT = process.env.PORT || 8080;
 const ENV = process.env.NODE_ENV || 'development';
@@ -15,16 +16,20 @@ const app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
+const router = require('./routes/auth')
+
 
 app.use(express.static('build'));
-const dbUsers = require('./db/users')(knex);
-const dbFavourites = require('./db/favourites')(knex);
-const dbCards = require('./db/cards')(knex);
 
+app.use(cookieSession({
+    name: 'session',
+    keys: ['Lighthouse'],
+    maxAge: 24 * 60 * 60 * 1000
+  }));
 
-app.get('/', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '/index.html'));
-});
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use('/', router);
 
 server.listen(PORT, () => {
    console.log('Sports tracker listening on port ' + PORT);
