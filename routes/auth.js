@@ -25,9 +25,9 @@ module.exports = (function() {
   router.use((req, res, next) => {
     const sessionUsername = req.session.username;
     if(!sessionUsername)
-      res.locals.username = null
+      res.locals.username = null;
     else { 
-      let user = dbUsers.getUserByUserName(sessionUsername).then((result) => {
+      dbUsers.getUserByUserName(sessionUsername).then(result => {
         res.locals.username = result.Username;
       });
     }
@@ -36,16 +36,13 @@ module.exports = (function() {
 
   router.post('/register', (req, res) => {
     const newUsername = req.body.username;
-    dbUsers.getUserByEmail(req.body.email).then(result =>{
+    dbUsers.getUserByEmail(req.body.email).then(result => {
       if(!req.body.email || !req.body.password || !req.body.username){
-        res.status(400).send('Please input all fields. <a href="/register">Try again</a>');
+        res.status(400).send('Please input all fields. <a href="/">Try again</a>');
         return;
-      }
-      else if(result[0]){
-        res.status(400).send('Email entered already in use. Please <a href="/register">register</a> with another email');
-      }
-
-      else {
+      } else if(result[0]) {
+        res.status(400).send('Email entered already in use. Please <a href="/">register</a> with another email');
+      } else {
         bcrypt.hash(req.body.password, 10, (err, hash) => {
           const username = req.body.username;
           const email = req.body.email;
@@ -59,13 +56,6 @@ module.exports = (function() {
     });
   });
   // LOGIN routes
-  router.get('/login', (req, res) => {
-    if(res.locals.username){
-      res.redirect('/');
-      return;
-    }
-    res.render('/');
-  });
 
   router.post('/login', (req, res, next) => {
     let inputPw = req.body.password;
