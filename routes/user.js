@@ -8,29 +8,29 @@ const dbCards = require('../db/cards')(knex);
 const cookieSession = require('cookie-session');
 const bodyParser = require('body-parser');
 
-
-
 module.exports = (function() {
-
   user_router.get('/get', (req, res) => {
     const user_id = req.session.user_id;
     if(user_id){
       dbCards.getCardsByUser(user_id).then(result => {
-          const games = result.map(dbGame => {
-            let game = {};
-            game.gameId = dbGame.gameId;
-            game.awayTeam = dbGame.awayteam;
-            game.homeTeam = dbGame.hometeam;
-            game.date = dbGame.date;
-            game.time = dbGame.time;
-            game.league = dbGame.league;
-            return game;
-          })
+        const games = result.map(dbGame => {
+          let game = {};
+          game.gameId = dbGame.gameId;
+          game.awayTeam = dbGame.awayteam;
+          game.homeTeam = dbGame.hometeam;
+          game.date = dbGame.date;
+          game.time = dbGame.time;
+          game.startTime = dbGame.time;
+          game.league = dbGame.league;
+          return game;
+        })
         res.json({response: games});
       }).catch(error => {
         res.status(500);
         res.json({ message: 'Database Error. Please try again' });
       })
+    } else {
+      res.json();
     }
   }),
 
@@ -40,12 +40,17 @@ module.exports = (function() {
     if(user_id){
       dbCards.findByGameAndUser(gameId.gameId, user_id).then(result => {
         if(result[0]){
-          dbCards.removeCard(result[0]).then(result => console.log('card removed'));
+          dbCards.removeCard(result[0]).then(result =>  res.json()).catch(error => {
+            res.status(500);
+            res.json({ message: 'Database Error. Please try again' });
+          });
         }
       }).catch(error => {
         res.status(500);
         res.json({ message: 'Database Error. Please try again' });
       });
+    } else {
+      res.json();
     }
   })
 
